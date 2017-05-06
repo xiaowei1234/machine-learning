@@ -2272,8 +2272,8 @@ From eyeball perspective, it looks like max depth 6 model is the best model due 
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><strong>Answer: </strong> the k-fold cross validation training technique separates the data into n equal parts. One part is used as the testing/validation set while the rest are used as the training set. Each model is tested on each fold and the predictions are combined (averaged or by vote) then compared to the other models. The total number of model runs should be (total # of combinations of parameters <em> k). So if there were two parameters of three values each along with 10-fold cv there would be a total of 2</em>3*10 = 60 model runs.</p>
-<p>The benefit of cross validation is that your model gets trained on all of the data and also gets tested on all the data</p>
+<p><strong>Answer: </strong> the k-fold cross validation training technique separates the data into n equal parts. One part is used as the testing/validation set while the rest are used as the training set. Each model is tested on each fold and the predictions are combined (averaged or by vote) then compared to the other models.</p>
+<p>The benefit of cross validation is that your model gets trained on all of the data. All of the data also gets tested once unlike train/val/test split.</p>
 <p>Using grid search without a cross validated set can lead to overfitting as the model hyperparameters will be fitted on the test set instead and will be be fitted too close to the training data and not generalize as well.</p>
 
 </div>
