@@ -284,8 +284,8 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<p><strong>Answer:</strong>
-Q. Does the Smartcab move at all during the simulation?</p>
+<p><strong>Answer:</strong></p>
+<p>Q. Does the Smartcab move at all during the simulation?</p>
 
 <pre><code>A. No it does not
 
@@ -297,7 +297,7 @@ Q. Does the Smartcab move at all during the simulation?</p>
 </code></pre>
 <p>Q. How does the light changing color affect the rewards?</p>
 
-<pre><code>A. If the light is red then the agent receives positive rewards for idling. If the light is green the agent receives negative rewards for idling</code></pre>
+<pre><code>A. If the light is red then the agent receives positive rewards for idling. If the light is green the agent receives negative rewards for idling (unless there is oncoming traffic that is turning left)</code></pre>
 
 </div>
 </div>
@@ -339,7 +339,7 @@ Q. Does the Smartcab move at all during the simulation?</p>
 
 B. epsilon (float) - this float between 0 and 1 will control the probability the agent will choose the optimal next step with 1 being always and 0 being a random step else where.
 
-C. alpha (float) - this float is the speed at which the Q-learning model will change with each iteration of the model to learn the right rewards states and learn the optimal solution. I am unsure  as to whether there is an upper bound on this number. Although wouldn't setting alpha = 0 be equivalent to learning = False?
+C. alpha (float) - this float is the speed at which the Q-learning model will change with each iteration of the model to learn the right rewards states and learn the optimal solution. I am unsure  as to whether there is an upper bound on this number.
 
 </code></pre>
 <p>Q. In the <em><code>environment.py</code></em> Python file, what Environment class function is called when an agent performs an action?</p>
@@ -1517,6 +1517,7 @@ zMzMzKyO/h9UB2vPtuekXwAAAABJRU5ErkJggg==
 <p>light, left, and oncoming are relevant for safety. These features signal whether the smartcab will receive negative/positive reward for following traffic rules. In terms of getting to the destination they will only hinder the cab since red light and oncoming traffic means that the cab shouldn't move toward its destination. I don't see anywhere in the code that states that a cab that violates traffic laws or gets in an accident stops moving.</p>
 <p>waypoint and deadline are relevant for efficiency. The direction that the cab should move is obviously needed for the car to move towards the destination. deadline is needed so that so cab does not attempt to stay driving around forever.</p>
 <p>right is not relevant for safety or efficiency because light strictly dominates the information gain from the 'right' feature.</p>
+<p>I ultimately omitted the "deadline" feature from the learning models because it exploded the feature space too much. The agent did not learn fast enough even with multiple hundreds of trials.</p>
 
 </div>
 </div>
@@ -1550,7 +1551,7 @@ zMzMzKyO/h9UB2vPtuekXwAAAABJRU5ErkJggg==
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><strong>Answer:</strong>
-waypoint: 3, light: 2, left: 4, oncoming: 4. <code>3*2*4*4 = 94</code> size of the state space. I believe the environment could learn the possible states since each trial the cab will traverse d states where d = deadline. I am not sure if deadline will expand the size of the state too much.</p>
+waypoint: 3, light: 2, left: 4, oncoming: 4. <code>3*2*4*4 = 96</code> size of the state space. I believe the environment could learn the possible states since each trial the cab will traverse d states where d = deadline.</p>
 
 </div>
 </div>
@@ -4628,7 +4629,7 @@ gywzMzMzM7MacpBlZmZmZmZWQw6yzMzMzMzMashBlpmZmZmZWQ05yDIzMzMzM6shB1lmZmZmZmY1
 </code></pre>
 <p>Q. Are you satisfied with the safety and reliability ratings of the Smartcab?</p>
 
-<pre><code>A. The ratings are good. However, around 3% of agent's actions are still bad actions so I think some additional tuning could be done.</code></pre>
+<pre><code>A. Yes, all 10 of the tests managed to reach the destination with no accidents. (I know the grader wanted me to try more tests but I didn't want to run the code again with 400+ trials).</code></pre>
 
 </div>
 </div>
@@ -4670,6 +4671,20 @@ Correct actions: 4, incorrect actions: 4. 50% correct rate
 50% isn't terrible I guess since there is a chance that the other scenarios may still get the cab to be closer to the destination as well.
 
 </code></pre>
+<p><code>sub-optimal state
+('left', 'green', 'forward', 'left')
+ -- forward : 0.11
+ -- None : 0.57
+ -- right : 0.05
+ -- left : 0.00
+ We see that the agent is able to turn left but left actually has the lowest Q-value of the four</code></p>
+<p><code>optimal state
+ ('left', 'green', None, 'left')
+ -- forward : 0.58
+ -- None : 0.58
+ -- right : 0.59
+ -- left : 1.87
+ We see that left has the biggest Q-value (also almost 3x the other values which is great)</code></p>
 <p>Policy 2: If the difference between the prior scenario is that oncoming traffic is forward or turning right then the correct course of action is None. Typically people wait at the light until there's a chance to turn left when the light is green.</p>
 <p>Correct action (None)</p>
 
@@ -4680,6 +4695,13 @@ Correct actions: 0, incorrect actions: 8. 0% correct rate
 I am a little surprised that the agent chose to move in a direction rather than staying still. This is probably due to the fact that the agent receives a negative reward for staying still when the light is green. There is also a chance that the agent will move closer to the waypoint by moving forward. I am also little surprised that there were three moves to the right since that is opposite of the waypoint.
 
 </code></pre>
+<p><code>sub-optimal state
+('left', 'green', 'right', 'right')
+ -- forward : 0.00
+ -- None : 0.00
+ -- right : 0.76
+ -- left : -15.77
+ The state is correct in penalizing turning left but I am not sure why turning right has the highest value (just by chance I guess)</code></p>
 <p>Policy 3: When the light is 'red' and the waypoint is 'right', 'left' is not 'forward' then the right course of action is to turn right.</p>
 <p>Correct action (Right)</p>
 
@@ -4689,8 +4711,21 @@ Correct actions: 4, incorect actions 4. 50% correct rate
 
 This policy is similar to turning left when the light is green. The agent is deciding between turning right or staying put to avoid an accident. I can see with further tuning that this state could be improved.
 
-
 </code></pre>
+<p><code>Optimal state
+('right', 'red', 'right', 'left')
+ -- forward : 0.00
+ -- None : 0.00
+ -- right : 1.44
+ -- left : -20.19
+ We see that right has the highest Q-value by far.</code></p>
+<p><code>Sub-optimal state
+ ('right', 'red', 'right', 'forward')
+ -- forward : 0.00
+ -- None : 2.11
+ -- right : 0.00
+ -- left : -7.29
+ here the correct action would be to turn right but None is chosen instead.</code></p>
 <p>One problem I see with the environment is that it doesn't give a positive reward for moving the same as the way point. Just whether a move is valid or not. I think if there was a bigger reward to moving the same as the waypoint then the model would train faster and more accurate.</p>
 
 </div>
@@ -4724,6 +4759,7 @@ This policy is similar to turning left when the light is green. The agent is dec
 <div class="text_cell_render border-box-sizing rendered_html">
 <p><strong>Answer:</strong></p>
 <p>A. The smartcab doesn't know whether it's actually getting closer to the destination or not. The optimal action within a state is independent of the destination once waypoint is factored in. Thus there is no point in adding in destination and the gamma decay. Another point is that there are other cars. The optimal action for an agent is dependent on the other cars in the environment. Each time the state transitions the other cars move and what may be the optimal action last state might not be the optimal action for the current state.</p>
+<p>The destination also changes from trial to trial. If the destination did not change, incorporating a 'closeness to destination' feature into the model could help fine tune the model. Since the destination changes such a feature wouldn't work.</p>
 
 </div>
 </div>
